@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vokabeltrainer</title>
+<style>
+:root{--bg:#222;--card:#363636;--dk:#2b2b2b;--or:#fa7b00;--tx:#eee;--mu:#a0a0a0;--rd:#e83a00;--gr:#69b42b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+#app{max-width:520px;margin:0 auto;min-height:100%;padding:0 16px 96px}
+h2{margin:18px 0 10px;font-size:20px}
+.top{text-align:center;padding:18px 0 14px;font-size:18px}
+.deck{display:flex;align-items:center;gap:16px;background:var(--card);border-radius:22px;padding:10px;margin-bottom:12px;cursor:pointer}
+.thumb{width:72px;height:90px;border-radius:14px;flex:none;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;color:#fff}
+.deck .m{flex:1;min-width:0}.deck .t{color:var(--or);font-size:20px}.deck .s{color:var(--mu);font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ring{width:64px;height:64px;border:3px solid var(--or);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--or);font-size:20px;flex:none;margin-right:6px}
+.btn{display:block;width:100%;border:0;border-radius:40px;padding:18px;font-size:19px;background:var(--or);color:#3a2000;cursor:pointer;text-align:center;margin:10px 0}
+.btn.o{background:none;border:2px solid #bbb;color:var(--tx);width:auto;display:inline-block;padding:12px 26px;font-size:17px}
+.btn.g{background:var(--card);color:var(--tx);padding:12px;font-size:16px;margin:4px 0}
+.dash{border:2px dashed #666;background:none;color:var(--mu)}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);display:flex;justify-content:center;padding:6px 0 calc(6px + env(safe-area-inset-bottom,0px));z-index:5}
+nav div{display:flex;width:100%;max-width:520px}
+nav button{flex:1;background:none;border:0;color:var(--mu);font-size:12px;padding:4px;cursor:pointer}
+nav button b{display:block;font-size:26px;font-weight:400;line-height:1.1}nav .on{color:var(--or)}
+.panel{background:var(--card);border-radius:22px;padding:16px;margin-bottom:12px}
+textarea,input,select{width:100%;background:var(--dk);color:var(--tx);border:1px solid #555;border-radius:12px;padding:10px;font:inherit;margin:4px 0 10px}
+textarea{min-height:120px;font-family:ui-monospace,monospace;font-size:13px}
+label{font-size:13px;color:var(--mu)}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.note{font-size:.7em;color:var(--mu)}
+.vl{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;padding:10px 0;border-bottom:1px solid #444;align-items:start}
+.vl small{display:block;color:var(--mu);font-size:12px}.vl button{background:none;border:0;color:var(--mu);font-size:18px;cursor:pointer}
+.err{background:#4a2020;border-radius:12px;padding:8px 12px;margin:6px 0;font-size:13px}
+/* study */
+.st{position:fixed;inset:0;max-width:520px;margin:0 auto;background:var(--bg);display:flex;flex-direction:column;padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px));z-index:10}
+.bar{display:flex;align-items:center;gap:12px;height:44px;margin-bottom:12px}
+.bar .tr{flex:1;height:14px;border-radius:9px;background:var(--card);overflow:hidden}.bar .fl{height:100%;background:var(--or);border-radius:9px;transition:width .3s}
+.bar .c{color:var(--mu);font-size:15px}.bar .c b{color:var(--or);font-weight:400}
+.bar button{background:none;border:0;color:var(--tx);font-size:30px;cursor:pointer}
+.stack{flex:1;display:flex;flex-direction:column;border-radius:26px;overflow:hidden;min-height:0;position:relative;background:var(--card)}
+.half{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:50px 20px 50px;position:relative;transition:flex .35s}
+.half .term{font-size:28px}.half .note{margin-top:14px;font-size:16px}
+.half.b{border-top:10px solid var(--bg);animation:up .38s ease-out}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+.lang{position:absolute;top:16px;left:16px;background:#6b5513;color:#e8c860;border-radius:6px;padding:3px 8px;font-size:12px;font-weight:600}
+.dots{position:absolute;top:10px;right:14px;background:none;border:0;color:#ccc;font-size:26px;cursor:pointer;line-height:1}
+.ic{position:absolute;bottom:14px;background:none;border:0;color:#ccc;font-size:26px;cursor:pointer}
+.menu{position:absolute;top:44px;right:14px;background:var(--dk);border-radius:12px;z-index:3;overflow:hidden}.menu button{display:block;background:none;border:0;color:var(--tx);padding:12px 18px;width:100%;text-align:left;font-size:15px}
+.ans{display:flex;gap:10px}.ans .btn{flex:1}
+.ok{color:var(--gr)}.bad{color:var(--rd)}
+.res{flex:1;background:var(--card);border-radius:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}
+.res h1{color:var(--or);font-size:26px;margin:0 0 10px}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#000c;padding:10px 18px;border-radius:20px;z-index:30;font-size:14px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<div id="app"></div><div id="nav"></div>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const DAY=864e5,IV=[0,1,2,4,8,16,32];
+const SAMPLE={schemaVersion:"1.0",deck:{title:"Latein – Testdaten",sourceLanguage:{name:"Latein",code:"la"},targetLanguage:{name:"Deutsch",code:"de"}},cards:[
+{id:"t1",front:{term:[{text:"Titus"}],note:[{text:"m"}]},back:{term:[{text:"Titus"}],note:[{text:"(röm. Kaiser 79–81 n. Chr.) "},{text:"Titī",italic:true}]}},
+{id:"t2",front:{term:[{text:"amāre",bold:true}],note:[{text:"amō, amāvī, amātum"}]},back:{term:[{text:"lieben"}],note:[{text:"a-Konjugation",italic:true}]}},
+{id:"t3",front:{term:[{text:"puella"}],note:[{text:"f"}]},back:{term:[{text:"das Mädchen"}],note:[{text:"puellae",italic:true}]}},
+{id:"t4",front:{term:[{text:"vir"}],note:[{text:"m"}]},back:{term:[{text:"der "},{text:"Mann",underline:true}],note:[{text:"nicht: "},{text:"Mensch",strikethrough:true}]}}]};
+let S=load(),V={n:'home'},Q=null;
+function init(){const s={decks:[],settings:{dir:'fwd'},log:[]};s.decks.push(mk(SAMPLE).deck);return s}
+function load(){try{const s=JSON.parse(localStorage.getItem('vt1'));if(s&&s.decks)return s}catch(e){}return init()}
+function save(){try{localStorage.setItem('vt1',JSON.stringify(S))}catch(e){toast('Speichern fehlgeschlagen')}}
+function toast(t){const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.append(e);setTimeout(()=>e.remove(),2200)}
+/* ---- model ---- */
+function runs(x){if(typeof x==='string')return x?[{text:x}]:[];if(!Array.isArray(x))return[];return x.map(r=>typeof r==='string'?{text:r}:r).filter(r=>r&&typeof r.text==='string').map(r=>({text:r.text,bold:!!r.bold,italic:!!r.italic,underline:!!r.underline,strikethrough:!!r.strikethrough}))}
+const plain=x=>runs(x).map(r=>r.text).join('');
+function rh(x){return runs(x).map(r=>{let d=[r.underline&&'underline',r.strikethrough&&'line-through'].filter(Boolean).join(' ');return`<span style="${r.bold?'font-weight:700;':''}${r.italic?'font-style:italic;':''}${d?'text-decoration:'+d:''}">${esc(r.text)}</span>`}).join('')}
+function mk(j){const errors=[];if(!j||typeof j!=='object')throw Error('Kein JSON-Objekt.');if(!Array.isArray(j.cards))throw Error('Feld "cards" (Liste) fehlt.');
+const d=j.deck||{},L=(o,n)=>({name:(o&&o.name)||n,code:(o&&o.code)||''});
+const deck={id:'d'+Date.now()+Math.random().toString(36).slice(2,5),title:d.title||'Neue Sammlung',src:L(d.sourceLanguage,'Sprache A'),tgt:L(d.targetLanguage,'Sprache B'),cards:[]};
+j.cards.forEach((c,i)=>{try{const f=c.front||{},b=c.back||{};const card={id:String(c.id||'c'+Date.now()+'_'+i),front:{term:runs(f.term),note:runs(f.note)},back:{term:runs(b.term),note:runs(b.note)},box:0,due:0,seen:0,ok:0};
+if(!card.front.term.length)throw Error('front.term fehlt/leer');if(!card.back.term.length)throw Error('back.term fehlt/leer');deck.cards.push(card)}catch(e){errors.push(`Karte ${i+1}: ${e.message}`)}});return{deck,errors}}
+const exp=d=>({schemaVersion:"1.0",deck:{title:d.title,sourceLanguage:d.src,targetLanguage:d.tgt},cards:d.cards.map(c=>({id:c.id,front:c.front,back:c.back}))});
+const dueN=d=>d.cards.filter(c=>c.due<=Date.now()).length;
+const col=t=>{let h=0;for(const c of t)h=(h*31+c.charCodeAt(0))%360;return`hsl(${h},45%,38%)`};
+/* ---- nav/render ---- */
+const NAV=[['home','⌂','Home'],['games','☆','Spiele'],['add','+','Eingabe'],['dict','⌕','Wörterbuch'],['more','☰','Mehr']];
+function go(n,p){V=Object.assign({n},p||{});render();scrollTo(0,0)}
+function render(){const st=V.n==='study'||V.n==='result';$('#nav').innerHTML=st?'':`<nav><div>${NAV.map(([k,i,l])=>`<button class="${(V.n===k||(k==='home'&&V.n==='deck'))?'on':''}" onclick="go('${k}')"><b>${i}</b>${l}</button>`).join('')}</div></nav>`;
+const f=VIEWS[V.n]||VIEWS.home;$('#app').innerHTML=f();if(V.n==='study'&&V.kb)setTimeout(()=>{const i=$('#kbi');i&&i.focus()},50)}
+const deckOf=()=>S.decks.find(d=>d.id===V.id);
+const VIEWS={
+home(){return`<div class="top">Vokabeltrainer</div>${S.decks.map(d=>{const n=dueN(d);return`<div class="deck" onclick="go('deck',{id:'${d.id}'})"><div class="thumb" style="background:${col(d.title)}">${esc(d.title[0])}</div><div class="m"><div class="t">${n?'Heute üben':'Alles erledigt'}</div><div class="s">${esc(d.title)}</div></div><div class="ring" onclick="event.stopPropagation();startStudy('${d.id}')">${n}</div></div>`}).join('')}
+<div class="deck dash" onclick="go('deck',{id:null})" style="justify-content:center;height:70px">+ Sammlung importieren</div>`},
+games(){return`<h2>Spiele</h2><div class="panel">Hier entstehen später weitere Lernspiele (Zuordnen, Memory, Zeitrennen). Die Datenstruktur ist bereits vorbereitet.</div>`},
+deck(){const d=deckOf();if(!d)return importView();
+return`<h2>${esc(d.title)} <small class="note">${esc(d.src.name)} ⇄ ${esc(d.tgt.name)}</small></h2>${d.title.includes('Testdaten')?'<div class="note">Testdaten</div>':''}
+<button class="btn" onclick="startStudy('${d.id}')">Lernen (${dueN(d)} fällig)</button>
+<div class="row"><button class="btn g" onclick="go('deck',{id:null})">Import</button><button class="btn g" onclick="dl('${d.id}')">Export</button><button class="btn g" onclick="V.edit='new';render()">+ Karte</button><button class="btn g" onclick="delDeck('${d.id}')">Löschen</button></div>
+${V.edit!=null?editForm(d):''}${d.cards.map((c,i)=>`<div class="vl"><div>${rh(c.front.term)}<small>${rh(c.front.note)}</small></div><div>${rh(c.back.term)}<small>${rh(c.back.note)}</small></div><div><button onclick="V.edit=${i};render()">✎</button><button onclick="delCard(${i})">🗑</button></div></div>`).join('')}`},
+dict(){const q=(V.q||'').toLowerCase();const r=[];if(q)S.decks.forEach(d=>d.cards.forEach(c=>{if((plain(c.front.term)+' '+plain(c.back.term)+' '+plain(c.front.note)+' '+plain(c.back.note)).toLowerCase().includes(q))r.push(c)}));
+return`<h2>Wörterbuch</h2><input id="q" placeholder="Suchen…" value="${esc(V.q||'')}" oninput="V.q=this.value;const p=this.selectionStart;render();const e=$('#q');e.focus();e.setSelectionRange(p,p)">${r.slice(0,100).map(c=>`<div class="vl" style="grid-template-columns:1fr 1fr"><div>${rh(c.front.term)}<small>${rh(c.front.note)}</small></div><div>${rh(c.back.term)}<small>${rh(c.back.note)}</small></div></div>`).join('')||(q?'<p class="note">Keine Treffer.</p>':'')}`},
+add(){return`<h2>Neue Vokabel</h2>${S.decks.length?editForm(null,true):'<p>Lege zuerst eine Sammlung an.</p>'}`},
+more(){const s=S.settings;P.n=P.n||20;
+return`<h2>Einstellungen</h2><div class="panel"><label>Abfragerichtung</label><select onchange="S.settings.dir=this.value;save()">${[['fwd','Vorderseite → Rückseite'],['rev','Rückseite → Vorderseite'],['both','Gemischt']].map(([v,t])=>`<option value="${v}" ${s.dir===v?'selected':''}>${t}</option>`).join('')}</select>
+<button class="btn g" onclick="if(confirm('Alle Daten löschen?')){localStorage.removeItem('vt1');S=init();go('home')}">Alle Daten zurücksetzen</button></div>
+<h2>Statistik</h2><div class="panel">Sammlungen: ${S.decks.length} · Karten: ${S.decks.reduce((a,d)=>a+d.cards.length,0)} · Lernrunden: ${S.log.length}</div>
+<h2>ChatGPT-Import-Prompt</h2>${promptView()}`}};
+/* ---- edit ---- */
+function editForm(d,addMode){const c=(!addMode&&typeof V.edit==='number')?d.cards[V.edit]:null;const m=x=>c?plain(x):'';
+const dsel=addMode?`<label>Sammlung</label><select id="fd">${S.decks.map(x=>`<option value="${x.id}">${esc(x.title)}</option>`).join('')}</select>`:'';
+return`<div class="panel">${dsel}<label>Vorderseite</label><input id="f1" value="${esc(m(c&&c.front.term))}"><label>Notiz vorn</label><input id="f2" value="${esc(m(c&&c.front.note))}"><label>Rückseite</label><input id="f3" value="${esc(m(c&&c.back.term))}"><label>Notiz hinten</label><input id="f4" value="${esc(m(c&&c.back.note))}">
+<div class="note">Formatierung: **fett**, *kursiv*, __unterstrichen__, ~~durchgestrichen~~ (wird beim Speichern in Text-Runs umgewandelt; vorhandene Formatierung wird beim Bearbeiten als Markup angezeigt).</div>
+<button class="btn" onclick="saveCard(${addMode?1:0})">Speichern</button>${addMode?'':'<button class="btn g" onclick="V.edit=null;render()">Abbrechen</button>'}</div>`}
+function mdRuns(s){const out=[];const re=/(\*\*[^*]+\*\*|\*[^*]+\*|__[^_]+__|~~[^~]+~~)/g;s.split(re).forEach(p=>{if(!p)return;let o={text:p};if(/^\*\*.+\*\*$/.test(p))o={text:p.slice(2,-2),bold:true};else if(/^\*.+\*$/.test(p))o={text:p.slice(1,-1),italic:true};else if(/^__.+__$/.test(p))o={text:p.slice(2,-2),underline:true};else if(/^~~.+~~$/.test(p))o={text:p.slice(2,-2),strikethrough:true};out.push(o)});return runs(out)}
+function toMd(x){return runs(x).map(r=>{let t=r.text;if(r.bold)t=`**${t}**`;if(r.italic)t=`*${t}*`;if(r.underline)t=`__${t}__`;if(r.strikethrough)t=`~~${t}~~`;return t}).join('')}
+function saveCard(add){const d=add?S.decks.find(x=>x.id===$('#fd').value):deckOf();const v=i=>$('#f'+i).value;if(!v(1).trim()||!v(3).trim())return toast('Vorder- und Rückseite ausfüllen');
+const o={front:{term:mdRuns(v(1)),note:mdRuns(v(2))},back:{term:mdRuns(v(3)),note:mdRuns(v(4))}};
+if(!add&&typeof V.edit==='number'){Object.assign(d.cards[V.edit],o)}else d.cards.push(Object.assign({id:'c'+Date.now(),box:0,due:0,seen:0,ok:0},o));
+save();toast('Gespeichert');if(add)go('add');else{V.edit=null;render()}}
+function delCard(i){if(confirm('Vokabel löschen?')){deckOf().cards.splice(i,1);save();render()}}
+function delDeck(id){if(confirm('Ganze Sammlung löschen?')){S.decks=S.decks.filter(d=>d.id!==id);save();go('home')}}
+function dl(id){const d=S.decks.find(x=>x.id===id),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(exp(d),null,2)],{type:'application/json'}));a.download=d.title.replace(/\W+/g,'_')+'.json';a.click()}
+/* ---- import ---- */
+let IMP={errs:[]};
+function importView(){return`<h2>Import</h2><div class="panel"><label>JSON einfügen</label><textarea id="jt" placeholder='{"schemaVersion":"1.0","deck":{…},"cards":[…]}'></textarea><div class="row"><button class="btn g" onclick="doImport($('#jt').value,false)">Neue Sammlung</button><button class="btn g" onclick="doImport($('#jt').value,true)">Aktuelle ersetzen</button></div>
+<label>oder JSON-Datei</label><input type="file" accept=".json,application/json" onchange="fileImp(this)"><button class="btn g" onclick="V.demo=1;doImport(JSON.stringify(SAMPLE))">Testdaten laden</button>${IMP.errs.map(e=>`<div class="err">${esc(e)}</div>`).join('')}</div><h2>ChatGPT-Import-Prompt</h2>${promptView()}`}
+function fileImp(i){const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=()=>doImport(r.result);r.readAsText(f)}
+function doImport(t,replace){IMP.errs=[];try{const {deck,errors}=mk(JSON.parse(t));IMP.errs=errors;if(!deck.cards.length)throw Error('Keine gültigen Karten gefunden.');
+if(replace&&V.id){const i=S.decks.findIndex(d=>d.id===V.id);deck.id=V.id;S.decks[i]=deck}else S.decks.push(deck);save();toast(`${deck.cards.length} Karten importiert`+(errors.length?` (${errors.length} Fehler)`:''));if(errors.length){V.id=deck.id;V.n='deck';render();$('#app').insertAdjacentHTML('afterbegin',errors.map(e=>`<div class="err">${esc(e)}</div>`).join(''))}else go('deck',{id:deck.id})}
+catch(e){IMP.errs=['Import fehlgeschlagen: '+e.message];V.id=null;V.n='deck';render()}}
+/* ---- prompt ---- */
+const P={mode:'A',n:20,a:'Latein',b:'Deutsch',x:''};
+function buildPrompt(){const fmt=JSON.stringify({schemaVersion:"1.0",deck:{title:"Titel",sourceLanguage:{name:P.a,code:"la"},targetLanguage:{name:P.b,code:"de"}},cards:[{id:"vokabel-001",front:{term:[{text:"Titus",bold:false,italic:false,underline:false,strikethrough:false}],note:[{text:"m"}]},back:{term:[{text:"Titus"}],note:[{text:"(röm. Kaiser 79–81 n. Chr.) "},{text:"Titī",italic:true}]}}]},null,2);
+const rules=`Regeln für das Format:\n- Jede Karte hat "front" (Ausgangssprache: ${P.a}) und "back" (Zielsprache: ${P.b}), jeweils mit "term" (Hauptvokabel) und "note" (kleiner Zusatztext, z. B. Genus, Stammformen, Hinweise).\n- "term" und "note" sind Listen von Text-Runs: {"text":"…","bold":true|false,"italic":true|false,"underline":true|false,"strikethrough":true|false}. Nicht gesetzte Flags gelten als false. Unterschiedlich formatierte Teile eines Textes werden in mehrere Runs aufgeteilt.\n- "id" ist eindeutig, fortlaufend (vokabel-001, vokabel-002, …).\n- Gib ausschließlich gültiges JSON aus, ohne Erklärungen und ohne Markdown-Codeblock.`;
+if(P.mode==='B')return`Erstelle mir eine Formatvorlage (Vorlage mit genau einer Beispielkarte) für eine Vokabelliste ${P.a} → ${P.b} im folgenden JSON-Format. Extrahiere keine Vokabeln aus Bildern.\n\n${fmt}\n\n${rules}${P.x?'\n\nZusätzliche Anweisungen: '+P.x:''}`;
+return`Ich lade dir ein Bild mit einer Vokabelliste (${P.a} → ${P.b}) hoch.\n\nSchreibe mir ${P.n==='alle'?'alle Vokabeln':'die ersten '+P.n+' Vokabeln'} dieses Blattes in folgendem JSON-Format:\n\n${fmt}\n\n${rules}\n\nBeachte außerdem:\n- Übernimm die Vokabeln in der Reihenfolge, in der sie auf dem Blatt stehen.\n- Achte auf die richtige Zuordnung von Vokabel, Übersetzung und Zusatzinformationen.\n- Übernimm erkennbare Formatierungen (fett, kursiv, unterstrichen, durchgestrichen).\n- Erfinde keine fehlenden Informationen; lasse "note" leer ([]), wenn nichts dasteht.${P.x?'\n- '+P.x:''}`}
+function promptView(){return`<div class="panel"><label>Modus</label><select onchange="P.mode=this.value;render()"><option value="A" ${P.mode==='A'?'selected':''}>A: Vokabeln aus Bild extrahieren</option><option value="B" ${P.mode==='B'?'selected':''}>B: Nur Format/Vorlage erzeugen</option></select>
+<div class="row"><div><label>Ausgangssprache</label><input value="${esc(P.a)}" onchange="P.a=this.value;render()"></div><div><label>Zielsprache</label><input value="${esc(P.b)}" onchange="P.b=this.value;render()"></div></div>
+${P.mode==='A'?`<label>Anzahl Vokabeln (Zahl oder „alle“)</label><input value="${esc(P.n)}" onchange="P.n=this.value||'alle';render()">`:''}
+<label>Zusätzliche Anweisungen</label><input value="${esc(P.x)}" onchange="P.x=this.value;render()"><textarea readonly style="min-height:200px">${esc(buildPrompt())}</textarea><button class="btn" onclick="copyP()">Prompt kopieren</button></div>`}
+function copyP(){const t=buildPrompt();(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Kopiert'),()=>{const a=document.querySelector('textarea[readonly]');a.select();document.execCommand('copy');toast('Kopiert')})}
+/* ---- study ---- */
+function startStudy(id,all){const d=S.decks.find(x=>x.id===id);let cs=d.cards.filter(c=>all||c.due<=Date.now());if(!cs.length)return confirm('Nichts fällig. Trotzdem üben?')?startStudy(id,true):0;
+cs=cs.sort(()=>Math.random()-.5).slice(0,10);const dir=S.settings.dir;
+Q={d,items:cs.map(c=>({c,rev:dir==='rev'||(dir==='both'&&Math.random()<.5),tries:0})),total:cs.length,done:0,first:0,shown:false,menu:false,kb:false};V={n:'study'};drawStudy()}
+function drawStudy(){const q=Q,it=q.items[0];$('#nav').innerHTML='';
+if(!it)return finish();const F=it.rev?it.c.back:it.c.front,B=it.rev?it.c.front:it.c.back,fl=it.rev?q.d.tgt:q.d.src,bl=it.rev?q.d.src:q.d.tgt;
+const lg=l=>`<span class="lang">${esc((l.code||l.name).slice(0,3).toUpperCase())}</span>`;
+$('#app').innerHTML=`<div class="st"><div class="bar"><span class="c" style="color:var(--mu)">${q.items.length}</span><div class="tr"><div class="fl" style="width:${q.done/q.total*100}%"></div></div><span class="c"><b>${q.done}</b> / ${q.total}</span><button onclick="V.n='home';Q=null;render()">✕</button></div>
+<div class="stack"><div class="half">${lg(fl)}<button class="dots" onclick="Q.menu=!Q.menu;drawStudy()">⋮</button>${q.menu?`<div class="menu"><button onclick="Q.menu=false;go('deck',{id:'${q.d.id}',edit:${q.d.cards.indexOf(it.c)}})">Vokabel bearbeiten</button><button onclick="alert('Box ${it.c.box}/6 · gesehen ${it.c.seen}× · richtig ${it.c.ok}×\\nFällig: '+(it.c.due<=Date.now()?'jetzt':new Date(it.c.due).toLocaleDateString()))">Wiederholungseinstellungen</button></div>`:''}
+<div class="term">${rh(F.term)}</div><div class="note">${rh(F.note)}</div><button class="ic" style="left:50%;transform:translateX(-50%)" onclick="speak(plain(Q.items[0].${it.rev?'c.back':'c.front'}.term),'${esc(fl.code)}')">🔈</button>${q.shown?'':`<button class="ic" style="right:16px" onclick="Q.kb=!Q.kb;drawStudy();${'$'}('#kbi')&&${'$'}('#kbi').focus()">⌨</button>`}</div>
+${q.shown?`<div class="half b">${lg(bl)}<div class="term">${rh(B.term)}</div><div class="note">${rh(B.note)}</div><button class="ic" style="left:50%;transform:translateX(-50%)" onclick="speak(plain(Q.items[0].${it.rev?'c.front':'c.back'}.term),'${esc(bl.code)}')">🔈</button></div>`:''}</div>
+${q.shown?`<div class="ans"><button class="btn" style="background:var(--rd)" onclick="rate(0)">✕</button><button class="btn" style="background:var(--gr)" onclick="rate(1)">✓</button></div>`
+:(q.kb?`<input id="kbi" placeholder="Antwort eingeben…" onkeydown="if(event.key==='Enter')checkKb()" style="margin:10px 0 0;border-radius:30px;padding:14px 18px"><button class="btn" onclick="checkKb()">Prüfen</button>`:`<button class="btn" onclick="Q.shown=true;drawStudy()">Antwort anzeigen</button>`)}</div>`}
+function checkKb(){const it=Q.items[0],B=it.rev?it.c.front:it.c.back,a=$('#kbi').value.trim().toLowerCase(),ok=a&&a===plain(B.term).trim().toLowerCase();Q.shown=true;Q.kb=false;Q.kbOk=ok;toast(ok?'Richtig!':'Nicht ganz – vergleiche selbst');drawStudy()}
+function rate(ok){const q=Q,it=q.items.shift(),c=it.c;it.tries++;if(ok){q.done++;if(it.tries===1){q.first++;c.box=Math.min(6,c.box+1);c.ok++}else c.box=Math.max(1,c.box);c.due=Date.now()+IV[c.box]*DAY}else{c.box=0;c.due=0;q.items.splice(Math.min(q.items.length,3),0,it)}c.seen++;q.shown=false;q.menu=false;save();drawStudy()}
+function finish(){const q=Q;S.log.push({d:q.d.id,t:Date.now(),n:q.total,ok:q.first});save();V={n:'result'};const p=Math.round(q.first/q.total*100),r=45,C=2*Math.PI*r;
+$('#app').innerHTML=`<div class="st"><div class="bar"><button style="color:var(--or)" onclick="go('home')">←</button><div class="tr"><div class="fl" style="width:100%"></div></div><span class="c">${q.total} / ${q.total}</span><button onclick="go('home')">✕</button></div>
+<div class="res"><h1>${p===100?'Wow, super. Alles richtig!':p>=60?'Gut gemacht!':'Weiter üben lohnt sich!'}</h1><p>Du hast <b style="color:var(--or);font-size:1.4em">${q.first}</b> Kärtchen beim ersten Versuch richtig beantwortet (<b>${p}%</b>).</p>
+<svg width="200" height="200" viewBox="0 0 110 110"><circle cx="55" cy="55" r="${r}" fill="#222" stroke="#444" stroke-width="8"/><circle cx="55" cy="55" r="${r}" fill="none" stroke="var(--or)" stroke-width="8" stroke-linecap="round" stroke-dasharray="${C*p/100} ${C}" transform="rotate(-90 55 55)"/><text x="55" y="62" text-anchor="middle" fill="#eee" font-size="22">${p}%</text></svg>
+<button class="btn o" onclick="share(${q.first},${q.total},${p})">⤴ Ergebnis teilen</button></div>
+<button class="btn" onclick="startStudy('${q.d.id}',true)">↻ Weiter üben (${Math.min(10,q.d.cards.length)})</button></div>`}
+function share(a,n,p){const t=`Ich habe ${a} von ${n} Vokabeln beim ersten Versuch richtig (${p}%)!`;if(navigator.share)navigator.share({text:t}).catch(()=>{});else navigator.clipboard.writeText(t).then(()=>toast('Kopiert'))}
+function speak(t,l){try{const u=new SpeechSynthesisUtterance(t);if(l)u.lang=l;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){toast('Sprachausgabe nicht verfügbar')}}
+render();
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))try{}catch(e){}
+</script></body></html>
